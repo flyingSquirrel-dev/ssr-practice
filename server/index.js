@@ -4,6 +4,7 @@ import express from "express";
 // React
 import React from "react";
 import ReactDOMServer from "react-dom/server";
+import { StaticRouter } from "react-router-dom";
 import WDM from "./WDM";
 import App from "../client/App";
 import Html from "./Html";
@@ -11,9 +12,11 @@ import Html from "./Html";
 const app = express();
 const port = 5000;
 
+// client 소스를 빌드하는 미들웨어
 app.use(WDM);
 
-app.get("/", function(req, res, next) {
+// 모든 요청에 대해 ssr로 처리함
+app.get("*", function(req, res, next) {
   let preloadState = {
     text: "Server-Side Rendering",
   };
@@ -26,9 +29,11 @@ app.get("/", function(req, res, next) {
   };
 
   ReactDOMServer.renderToNodeStream(
-    <Html {...renderProps}>
-      <App data={preloadState} />
-    </Html>,
+    <StaticRouter location={req.url}>
+      <Html {...renderProps}>
+        <App data={preloadState} />
+      </Html>
+    </StaticRouter>,
   ).pipe(res);
 });
 
